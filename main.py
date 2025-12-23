@@ -15,6 +15,9 @@ from services.asset_service import get_assets
 
 from schemas.asset import AssetResponse
 
+from services.coingecko_ingest import ingest_coingecko
+
+
 
 app = FastAPI(title="Kasparro Backend & ETL System")
 
@@ -63,6 +66,13 @@ def ingest_coinpaprika_endpoint(
     )
 ):
     return ingest_coinpaprika(limit)
+
+@app.post("/ingest/coingecko")
+def ingest_coingecko_endpoint(
+    limit: int = Query(50, ge=1, le=100)
+):
+    return ingest_coingecko(limit)
+
 
 @app.get("/assets", response_model=List[AssetResponse])
 def read_assets(
