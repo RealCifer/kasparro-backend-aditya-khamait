@@ -1,0 +1,22 @@
+from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+class RawCoinPaprika(Base):
+    __tablename__ = "raw_coinpaprika"
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String)
+    name = Column(String)
+    price = Column(Float)
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+class Asset(Base):
+    __tablename__ = "assets"
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String, unique=True)
+    name = Column(String)
+    price = Column(Float)
+    source = Column(String)
+    updated_at = Column(DateTime, default=datetime.utcnow)

@@ -1,8 +1,28 @@
 from fastapi import FastAPI
 import time
 import uuid
+import time as t
+
+from sqlalchemy.exc import OperationalError
+from core.init_db import init_db
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    retries = 10
+    while retries > 0:
+        try:
+            init_db()
+            print("Database connected and tables ready")
+            break
+        except OperationalError:
+            retries -= 1
+            print("Waiting for database to be ready...")
+            t.sleep(3)
+
+    if retries == 0:
+        raise Exception("Database not ready after retries")
 
 @app.get("/health")
 def health():
