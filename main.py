@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from services.coinpaprika_ingest import ingest_coinpaprika
+
 import time
 import uuid
 import time as t
@@ -40,3 +42,7 @@ def get_data(limit: int = 10, offset: int = 0):
         "api_latency_ms": int((time.time() - start) * 1000),
         "data": []
     }
+
+@app.post("/ingest/coinpaprika")
+def ingest(limit: int = 50):
+    return ingest_coinpaprika(limit)
