@@ -1,14 +1,23 @@
-from fastapi import FastAPI
-from services.coinpaprika_ingest import ingest_coinpaprika
+from fastapi import FastAPI, Query
+from typing import List
 
 import time
 import uuid
 import time as t
 
 from sqlalchemy.exc import OperationalError
-from core.init_db import init_db
 
-app = FastAPI()
+from core.init_db import init_db
+from core.db import SessionLocal
+
+from services.coinpaprika_ingest import ingest_coinpaprika
+from services.asset_service import get_assets
+
+from schemas.asset import AssetResponse
+
+
+app = FastAPI(title="Kasparro Backend & ETL System")
+
 
 @app.on_event("startup")
 def startup_event():
@@ -25,6 +34,7 @@ def startup_event():
 
     if retries == 0:
         raise Exception("Database not ready after retries")
+
 
 @app.get("/health")
 def health():
@@ -44,5 +54,23 @@ def get_data(limit: int = 10, offset: int = 0):
     }
 
 @app.post("/ingest/coinpaprika")
-def ingest(limit: int = 50):
+def ingest_coinpaprika_endpoint(
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=100,
+        description="Number of assets to ingest from CoinPaprika"
+    )
+):
     return ingest_coinpaprika(limit)
+
+@app.get("/assets", response_model=List[AssetResponse])
+def read_assets(
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+):
+    db = SessionLocal()
+    try:
+        return get_assets(db, limit, offset)
+    finally:
+        db.close()
