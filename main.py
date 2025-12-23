@@ -11,12 +11,11 @@ from core.init_db import init_db
 from core.db import SessionLocal
 
 from services.coinpaprika_ingest import ingest_coinpaprika
+from services.coingecko_ingest import ingest_coingecko
 from services.asset_service import get_assets
+from services.scheduler import start_scheduler
 
 from schemas.asset import AssetResponse
-
-from services.coingecko_ingest import ingest_coingecko
-
 
 
 app = FastAPI(title="Kasparro Backend & ETL System")
@@ -24,28 +23,31 @@ app = FastAPI(title="Kasparro Backend & ETL System")
 
 @app.on_event("startup")
 def startup_event():
-    retries = 10
-    while retries > 0:
-        try:
-            init_db()
-            print("Database connected and tables ready")
-            break
-        except OperationalError:
-            retries -= 1
-            print("Waiting for database to be ready...")
-            t.sleep(3)
+    db_connected = False
 
-    if retries == 0:
-        raise Exception("Database not ready after retries")
+    try:
+        init_db()
+        db_connected = True
+        print("Database connected and tables ready")
+    except Exception as e:
+        print("Database not available, starting API without DB:", e)
+
+    if db_connected:
+        try:
+            start_scheduler()
+            print("ETL scheduler started")
+        except Exception as e:
+            print("Scheduler failed to start:", e)
 
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "db": "connected",
+        "db": "connected (or optional)",
         "last_etl_run": "pending"
     }
+
 
 @app.get("/data")
 def get_data(limit: int = 10, offset: int = 0):
@@ -56,16 +58,13 @@ def get_data(limit: int = 10, offset: int = 0):
         "data": []
     }
 
+
 @app.post("/ingest/coinpaprika")
 def ingest_coinpaprika_endpoint(
-    limit: int = Query(
-        default=50,
-        ge=1,
-        le=100,
-        description="Number of assets to ingest from CoinPaprika"
-    )
+    limit: int = Query(50, ge=1, le=100)
 ):
     return ingest_coinpaprika(limit)
+
 
 @app.post("/ingest/coingecko")
 def ingest_coingecko_endpoint(
