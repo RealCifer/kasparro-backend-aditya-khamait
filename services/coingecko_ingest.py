@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from core.db import SessionLocal
-from core.models import RawCoinPaprika, Asset
-from core.retry import retry   # ✅ NEW
+from core.models import RawCoinGecko, Asset
+from core.retry import retry
 
 BASE_URL = "https://api.coingecko.com/api/v3"
 
@@ -24,7 +24,6 @@ def fetch_markets(limit: int = 50):
 
     return retry(_call, retries=3, delay_seconds=2)
 
-
 def ingest_coingecko(limit: int = 50):
     db: Session = SessionLocal()
     try:
@@ -33,7 +32,7 @@ def ingest_coingecko(limit: int = 50):
         for coin in coins:
             price = coin["current_price"]
 
-            raw = RawCoinPaprika(
+            raw = RawCoinGecko(
                 symbol=coin["symbol"].upper(),
                 name=coin["name"],
                 price=price,
