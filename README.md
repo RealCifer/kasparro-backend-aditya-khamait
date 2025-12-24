@@ -159,3 +159,37 @@ This project demonstrates:
 - Production-style data modeling
 
 The system closely mirrors real-world backend and ETL engineering workflows.
+
+# Kasparro Backend – Live URLs
+
+## Deployed Backend (Render)
+https://kasparro-backend-4y2n.onrender.com
+
+---
+
+## Health Check
+https://kasparro-backend-4y2n.onrender.com/health
+
+---
+
+## API Documentation (Swagger UI)
+https://kasparro-backend-4y2n.onrender.com/docs
+
+---
+
+## ETL Ingestion Endpoints
+
+### CoinPaprika
+POST  
+https://kasparro-backend-4y2n.onrender.com/ingest/coinpaprika?limit=50
+
+### CoinGecko
+POST  
+https://kasparro-backend-4y2n.onrender.com/ingest/coingecko?limit=50
+
+---
+
+## Assets API
+GET  
+https://kasparro-backend-4y2n.onrender.com/assets?limit=10&offset=0
+

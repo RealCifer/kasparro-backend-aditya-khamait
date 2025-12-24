@@ -4,15 +4,19 @@ from sqlalchemy.orm import Session
 
 from core.db import SessionLocal
 from core.models import RawCoinPaprika, Asset
+from core.retry import retry  
 
 BASE_URL = "https://api.coinpaprika.com/v1"
 
 
 def fetch_tickers(limit: int = 50):
-    url = f"{BASE_URL}/tickers"
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()[:limit]
+    def _call():
+        url = f"{BASE_URL}/tickers"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()[:limit]
+
+    return retry(_call, retries=3, delay_seconds=2)
 
 
 def ingest_coinpaprika(limit: int = 50):
@@ -23,7 +27,6 @@ def ingest_coinpaprika(limit: int = 50):
         for coin in coins:
             price = coin["quotes"]["USD"]["price"]
 
-            # Store RAW data
             raw = RawCoinPaprika(
                 symbol=coin["symbol"],
                 name=coin["name"],
@@ -32,10 +35,11 @@ def ingest_coinpaprika(limit: int = 50):
             )
             db.add(raw)
 
-            # UPSERT normalized asset
-            asset = db.query(Asset).filter(
-                Asset.symbol == coin["symbol"]
-            ).first()
+            asset = (
+                db.query(Asset)
+                .filter(Asset.symbol == coin["symbol"])
+                .first()
+            )
 
             if asset:
                 asset.price = price
@@ -53,8 +57,9 @@ def ingest_coinpaprika(limit: int = 50):
         db.commit()
         return {"ingested": len(coins)}
 
-    except Exception:
+    except Exception as e:
         db.rollback()
+        print("CoinPaprika ETL failed:", e)
         raise
     finally:
         db.close()
