@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from typing import List
 import time
 import uuid
@@ -7,7 +7,6 @@ from schemas.asset import AssetResponse
 from services.coinpaprika_ingest import ingest_coinpaprika
 from services.coingecko_ingest import ingest_coingecko
 from services.asset_service import get_assets
-
 
 app = FastAPI(title="Kasparro Backend & ETL System")
 
@@ -18,11 +17,9 @@ def startup_event():
     Startup logic:
     - Try DB init
     - If DB available → start scheduler
-    - If DB unavailable → API still runs
+    - If DB unavailable → API still runs (Render-safe)
     """
-
     try:
-        # Lazy imports (CRITICAL FIX)
         from core.init_db import init_db
         from services.scheduler import start_scheduler
 
@@ -73,7 +70,19 @@ def read_assets(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
-    from core.db import SessionLocal  
+    try:
+        from core.db import SessionLocal
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Database not configured"
+        )
+
+    if SessionLocal is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Database not configured"
+        )
 
     db = SessionLocal()
     try:
