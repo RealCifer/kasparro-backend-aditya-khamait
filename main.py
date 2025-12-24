@@ -3,33 +3,44 @@ from typing import List
 import time
 import uuid
 
-from core.init_db import init_db
-from core.db import SessionLocal
-
+from schemas.asset import AssetResponse
 from services.coinpaprika_ingest import ingest_coinpaprika
 from services.coingecko_ingest import ingest_coingecko
 from services.asset_service import get_assets
 
-from schemas.asset import AssetResponse
 
 app = FastAPI(title="Kasparro Backend & ETL System")
 
 
 @app.on_event("startup")
 def startup_event():
+    """
+    Startup logic:
+    - Try DB init
+    - If DB available → start scheduler
+    - If DB unavailable → API still runs
+    """
+
     try:
+        # Lazy imports (CRITICAL FIX)
+        from core.init_db import init_db
+        from services.scheduler import start_scheduler
+
         init_db()
-        print("Database connected and tables ready")
+        start_scheduler()
+        print("Database connected & scheduler started")
+
     except Exception as e:
-        print("Database not available, starting API without DB:", e)
+        print("Database not available, running API-only mode")
+        print(e)
 
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "db": "optional (Render)",
-        "last_etl_run": "on-demand"
+        "scheduler": "enabled if DB available",
+        "etl": "runs every 15 minutes when scheduler is active"
     }
 
 
@@ -62,6 +73,8 @@ def read_assets(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
+    from core.db import SessionLocal  
+
     db = SessionLocal()
     try:
         return get_assets(db, limit, offset)
