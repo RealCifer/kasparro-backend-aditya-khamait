@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Query
 from typing import List
-
 import time
 import uuid
 import time as t
@@ -20,7 +19,6 @@ from schemas.asset import AssetResponse
 
 app = FastAPI(title="Kasparro Backend & ETL System")
 
-
 @app.on_event("startup")
 def startup_event():
     db_connected = False
@@ -39,15 +37,13 @@ def startup_event():
         except Exception as e:
             print("Scheduler failed to start:", e)
 
-
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "db": "connected (or optional)",
+        "db": "connected or optional",
         "last_etl_run": "pending"
     }
-
 
 @app.get("/data")
 def get_data(limit: int = 10, offset: int = 0):
@@ -57,7 +53,6 @@ def get_data(limit: int = 10, offset: int = 0):
         "api_latency_ms": int((time.time() - start) * 1000),
         "data": []
     }
-
 
 @app.post("/ingest/coinpaprika")
 def ingest_coinpaprika_endpoint(
@@ -72,12 +67,14 @@ def ingest_coingecko_endpoint(
 ):
     return ingest_coingecko(limit)
 
-
 @app.get("/assets", response_model=List[AssetResponse])
 def read_assets(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
+    if SessionLocal is None:
+        return []
+
     db = SessionLocal()
     try:
         return get_assets(db, limit, offset)
