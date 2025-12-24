@@ -1,8 +1,11 @@
-from core.db import engine
+from core.db import engine, init_engine
 from core.models import Base
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    init_engine()
 
-if __name__ == "__main__":
-    init_db()
+    if engine is None:
+        print("DATABASE_URL not set, skipping DB init")
+        return
+
+    Base.metadata.create_all(bind=engine)
