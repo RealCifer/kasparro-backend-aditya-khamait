@@ -1,29 +1,29 @@
 import csv
-from pathlib import Path
 from sqlalchemy.orm import Session
-from core.models import Asset
 from core.db import SessionLocal
-
-
-CSV_PATH = Path("ingestion/assets.csv")
+from core.models import Asset
 
 
 def ingest_csv():
-    if not CSV_PATH.exists():
-        return {"error": "CSV file not found"}
+    if SessionLocal is None:
+        return {"error": "Database not configured"}
 
     db: Session = SessionLocal()
 
     try:
-        with open(CSV_PATH, newline="") as f:
-            reader = csv.DictReader(f)
+        with open("ingestion/assets.csv", "r") as file:
+            reader = csv.DictReader(file)
 
             for row in reader:
-                existing = db.query(Asset).filter_by(symbol=row["symbol"]).first()
+                asset = (
+                    db.query(Asset)
+                    .filter(Asset.symbol == row["symbol"])
+                    .first()
+                )
 
-                if existing:
-                    existing.price = float(row["price"])
-                    existing.source = row["source"]
+                if asset:
+                    asset.price = float(row["price"])
+                    asset.source = row["source"]
                 else:
                     asset = Asset(
                         symbol=row["symbol"],
@@ -33,7 +33,8 @@ def ingest_csv():
                     )
                     db.add(asset)
 
-        db.commit()
+            db.commit()
+
         return {"status": "CSV ingestion completed"}
 
     except Exception as e:
