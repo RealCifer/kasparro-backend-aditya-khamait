@@ -67,10 +67,8 @@ def ingest_coingecko_endpoint(
 
 @app.post("/ingest/csv")
 def ingest_csv_endpoint():
-    """
-    Ingest assets from CSV file
-    """
     return ingest_csv()
+
 
 @app.get("/assets", response_model=List[AssetResponse])
 def read_assets(
