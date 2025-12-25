@@ -1,4 +1,5 @@
 import csv
+import os
 from core.db import SessionLocal
 from core.models import Asset
 
@@ -7,7 +8,13 @@ def ingest_csv():
     db = SessionLocal()
 
     try:
-        with open("ingestion/assets.csv", "r") as file:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(BASE_DIR, "assets.csv")
+
+        if not os.path.exists(csv_path):
+            return {"error": "CSV file not found"}
+
+        with open(csv_path, newline="", encoding="utf-8") as file:
             reader = csv.DictReader(file)
 
             for row in reader:
@@ -17,7 +24,8 @@ def ingest_csv():
                     price=float(row["price"]),
                     source=row["source"]
                 )
-                db.merge(asset) 
+
+                db.merge(asset)
 
             db.commit()
 

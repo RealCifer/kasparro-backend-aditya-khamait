@@ -7,7 +7,7 @@ from schemas.asset import AssetResponse
 from services.coinpaprika_ingest import ingest_coinpaprika
 from services.coingecko_ingest import ingest_coingecko
 from services.asset_service import get_assets
-from ingestion.csv_ingest import ingest_csv  
+from ingestion.csv_ingest import ingest_csv
 
 app = FastAPI(title="Kasparro Backend & ETL System")
 
