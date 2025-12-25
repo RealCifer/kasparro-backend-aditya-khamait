@@ -1,0 +1,4 @@
+symbol,name,price,source
+BTC,Bitcoin,45000,csv
+ETH,Ethereum,3000,csv
+SOL,Solana,120,csv
