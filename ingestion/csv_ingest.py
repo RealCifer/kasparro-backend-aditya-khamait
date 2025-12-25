@@ -1,8 +1,8 @@
 import csv
 from pathlib import Path
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+from core.models import Asset
 from core.db import SessionLocal
-from core.models import CSVAsset
 
 
 CSV_PATH = Path("ingestion/assets.csv")
@@ -12,29 +12,33 @@ def ingest_csv():
     if not CSV_PATH.exists():
         return {"error": "CSV file not found"}
 
-    db = SessionLocal()
-    inserted = 0
+    db: Session = SessionLocal()
 
-    with open(CSV_PATH, newline="") as csvfile:
-        reader = csv.DictReader(csvfile)
+    try:
+        with open(CSV_PATH, newline="") as f:
+            reader = csv.DictReader(f)
 
-        for row in reader:
-            try:
-                asset = CSVAsset(
-                    symbol=row["symbol"],
-                    name=row["name"],
-                    price=float(row["price"]),
-                    source=row.get("source", "csv")
-                )
-                db.add(asset)
-                db.commit()
-                inserted += 1
-            except IntegrityError:
-                db.rollback()  
+            for row in reader:
+                existing = db.query(Asset).filter_by(symbol=row["symbol"]).first()
 
-    db.close()
+                if existing:
+                    existing.price = float(row["price"])
+                    existing.source = row["source"]
+                else:
+                    asset = Asset(
+                        symbol=row["symbol"],
+                        name=row["name"],
+                        price=float(row["price"]),
+                        source=row["source"],
+                    )
+                    db.add(asset)
 
-    return {
-        "status": "CSV ingestion completed",
-        "inserted": inserted
-    }
+        db.commit()
+        return {"status": "CSV ingestion completed"}
+
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+
+    finally:
+        db.close()
