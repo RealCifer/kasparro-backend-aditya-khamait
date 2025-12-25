@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
+from core.db import Base
 
 Base = declarative_base()
 
@@ -29,3 +30,13 @@ class RawCoinGecko(Base):
     name = Column(String)
     price = Column(Float)
     fetched_at = Column(DateTime, default=datetime.utcnow)
+
+class CSVAsset(Base):
+    __tablename__ = "csv_assets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, unique=True, index=True)
+    name = Column(String)
+    price = Column(Float)
+    source = Column(String, default="csv")
+    updated_at = Column(DateTime, default=datetime.utcnow)

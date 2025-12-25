@@ -122,6 +122,17 @@ SELECT COUNT(*) FROM raw_coingecko;
 Verify normalized data:
 SELECT source, COUNT(*) FROM assets GROUP BY source;
 
+## CSV Ingestion
+
+The system supports ingestion from a local CSV source.
+
+### File:
+
+### Endpoint:
+
+### Description:
+Reads asset data from CSV and normalizes it into the unified `assets` table.
+
 ---
 
 ## Project Structure
