@@ -5,14 +5,17 @@ from core.models import Asset
 
 
 def ingest_csv():
-    db = SessionLocal()
+    try:
+        db = SessionLocal()
+    except Exception:
+        return {"error": "Database not configured"}
 
     try:
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         csv_path = os.path.join(BASE_DIR, "assets.csv")
 
         if not os.path.exists(csv_path):
-            return {"error": "CSV file not found"}
+            return {"error": "assets.csv not found"}
 
         with open(csv_path, newline="", encoding="utf-8") as file:
             reader = csv.DictReader(file)
@@ -24,7 +27,6 @@ def ingest_csv():
                     price=float(row["price"]),
                     source=row["source"]
                 )
-
                 db.merge(asset)
 
             db.commit()
