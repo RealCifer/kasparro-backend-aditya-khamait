@@ -1,5 +1,7 @@
-from core.db import engine
-from core.models import Base
+from core.db import Base, engine
+from core import models
+
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    if engine:
+        Base.metadata.create_all(bind=engine)
