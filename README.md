@@ -1,4 +1,4 @@
-# Kasparro Backend & ETL System
+# Backend & ETL System
 
 This project is a production-grade backend and ETL system built as part of the Kasparro backend assignment.  
 It demonstrates real-world backend engineering practices such as data ingestion, failure recovery, clean architecture, and containerized deployment.
