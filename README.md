@@ -1,6 +1,6 @@
 # Backend & ETL System
 
-This project is a production-grade backend and ETL system built as part of the Kasparro backend assignment.  
+This project is a production-grade backend and ETL system built as part of the Backend project.  
 It demonstrates real-world backend engineering practices such as data ingestion, failure recovery, clean architecture, and containerized deployment.
 
 The system ingests cryptocurrency market data from multiple external APIs, stores raw data per source, normalizes it into a unified schema, and exposes it via REST APIs.
