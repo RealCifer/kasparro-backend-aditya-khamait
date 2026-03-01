@@ -171,7 +171,7 @@ This project demonstrates:
 
 The system closely mirrors real-world backend and ETL engineering workflows.
 
-# Kasparro Backend – Live URLs
+# Backend – Live URLs
 
 ## Deployed Backend (Render)
 https://kasparro-backend-4y2n.onrender.com
